@@ -1,0 +1,82 @@
+<resources>
+    <string name="app_name">Loop</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_discover">Discover</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_messages">Messages</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Auth -->
+    <string name="get_started">Get Started</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="login">Login</string>
+    <string name="continue_as_guest">Continue as Guest</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="name">Name</string>
+    <string name="username">Username</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="gender">Gender</string>
+    <string name="bio">Bio</string>
+    <string name="interests">Interests</string>
+
+    <!-- Home -->
+    <string name="your_loop">Your Loop</string>
+    <string name="stories">Stories</string>
+    <string name="for_you">For You</string>
+    <string name="friends">Friends</string>
+    <string name="liked">Liked</string>
+    <string name="comment">Comment</string>
+    <string name="share">Share</string>
+    <string name="more">More</string>
+
+    <!-- Create -->
+    <string name="post">Post</string>
+    <string name="story">Story</string>
+    <string name="reel">Reel</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="text">Text</string>
+    <string name="poll">Poll</string>
+    <string name="challenge">Challenge</string>
+
+    <!-- Discover -->
+    <string name="search">Search</string>
+    <string name="trending">Trending</string>
+    <string name="challenges">Challenges</string>
+    <string name="find_friends">Find Friends</string>
+    <string name="compliments">Compliments</string>
+    <string name="groups">Groups</string>
+
+    <!-- Messages -->
+    <string name="direct_messages">Direct Messages</string>
+    <string name="group_chats">Group Chats</string>
+    <string name="communities">Communities</string>
+    <string name="type_message">Type a message...</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="add_friend">Add Friend</string>
+    <string name="message">Message</string>
+    <string name="posts">Posts</string>
+    <string name="memories">Memories</string>
+    <string name="boards">Boards</string>
+    <string name="activity">Activity</string>
+    <string name="settings">Settings</string>
+
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="confirm">Confirm</string>
+    <string name="retry">Retry</string>
+
+    <!-- App Tagline -->
+    <string name="app_tagline">Connect. Play. Discover.</string>
+</resources>

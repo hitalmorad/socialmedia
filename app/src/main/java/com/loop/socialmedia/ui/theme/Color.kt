@@ -60,13 +60,22 @@ val md_theme_dark_inverseOnSurface = Color(0xFF1C1B1F)
 val md_theme_dark_inverseSurface = Color(0xFFE6E1E5)
 val md_theme_dark_inversePrimary = Color(0xFF4F46E5)
 val md_theme_dark_shadow = Color(0xFF000000)
-val md_theme_dark_surfaceTint = Color(0xFFA5B4FC)
+val md_theme_dark_surfaceTint = Color(0xFF6366F1)
 val md_theme_dark_outlineVariant = Color(0xFF49454F)
 val md_theme_dark_scrim = Color(0xFF000000)
 
 val seed = Color(0xFF6366F1)
 val error = Color(0xFFEF4444)
 
-
 val SemiTransparent = Color(0x80000000) // 50% black
 val Primary = Color(0xFF6200EE)
+
+// Temple Sunset Theme Colors
+val temple_sunset_orange = Color(0xFFFF6B35)
+val temple_sunset_golden = Color(0xFFFF8E53)
+val temple_sunset_light_orange = Color(0xFFFFB366)
+val temple_sunset_sky_blue = Color(0xFF4A90E2)
+val temple_sunset_water_blue = Color(0xFF2E5BBA)
+val temple_brown = Color(0xFF8B4513)
+val temple_brown_light = Color(0xFFA0522D)
+val temple_dark_brown = Color(0xFF654321)

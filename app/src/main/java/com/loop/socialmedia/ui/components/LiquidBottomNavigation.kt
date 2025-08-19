@@ -21,8 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.google.ai.client.generativeai.Chat
-import com.loop.socialmedia.ui.theme.md_theme_light_primary
-import com.loop.socialmedia.ui.theme.md_theme_light_secondary
+import com.loop.socialmedia.ui.theme.*
 
 data class BottomNavItem(
     val route: String,
@@ -70,8 +69,8 @@ fun LiquidBottomNavigation(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            md_theme_light_primary.copy(alpha = 0.8f),
-                            md_theme_light_secondary.copy(alpha = 0.6f)
+                            temple_sunset_orange.copy(alpha = 0.8f),
+                            temple_sunset_golden.copy(alpha = 0.6f)
                         )
                     ),
                     CircleShape
@@ -105,8 +104,8 @@ fun LiquidBottomNavigation(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                md_theme_light_primary,
-                                md_theme_light_secondary
+                                temple_sunset_orange,
+                                temple_sunset_golden
                             )
                         ),
                         CircleShape
@@ -157,7 +156,7 @@ private fun BottomNavItem(
         Icon(
             imageVector = item.icon,
             contentDescription = item.label,
-            tint = if (isSelected) md_theme_light_primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = if (isSelected) temple_sunset_orange else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
         )
 
@@ -166,7 +165,7 @@ private fun BottomNavItem(
         Text(
             text = item.label,
             style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) md_theme_light_primary else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isSelected) temple_sunset_orange else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

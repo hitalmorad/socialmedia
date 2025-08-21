@@ -11,6 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.loop.socialmedia.data.repository.CloudinaryRepository
@@ -32,7 +33,8 @@ fun AppNavigation(
     auth: FirebaseAuth,
     isUserLoggedIn: Boolean
 ) {
-    var currentRoute by remember { mutableStateOf(if (isUserLoggedIn) "home" else "splash") }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    var currentRoute = navBackStackEntry?.destination?.route ?: if (isUserLoggedIn) "home" else "splash"
     var showCreateModal by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -64,8 +66,8 @@ fun AppNavigation(
                 SplashScreen(
                     isUserLoggedIn = isUserLoggedIn,
                     onNavigate = {
-                        currentRoute = if (isUserLoggedIn) "home" else "welcome"
-                        navController.navigate(currentRoute) {
+                        val target = if (isUserLoggedIn) "home" else "welcome"
+                        navController.navigate(target) {
                             popUpTo("splash") { inclusive = true }
                         }
                     }
@@ -79,18 +81,15 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "welcome") {
+                    key(targetRoute) {
                         WelcomeScreen(
                             onSignUpClick = {
-                                currentRoute = "signup"
                                 navController.navigate("signup")
                             },
                             onLoginClick = {
-                                currentRoute = "login"
                                 navController.navigate("login")
                             },
                             onGuestClick = {
-                                currentRoute = "home"
                                 navController.navigate("home")
                             }
                         )
@@ -105,18 +104,16 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "login") {
+                    key(targetRoute) {
                         LoginScreen(
                             firestore = firestore,
                             auth = auth,
                             onLoginSuccess = {
-                                currentRoute = "home"
                                 navController.navigate("home") {
                                     popUpTo(0) { inclusive = true }
                                 }
                             },
                             onSignUpClick = {
-                                currentRoute = "signup"
                                 navController.navigate("signup")
                             }
                         )
@@ -131,13 +128,12 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "signup") {
+                    key(targetRoute) {
                         SignUpScreen(
                             firestore = firestore,
                             cloudinaryRepository = cloudinaryRepository,
                             auth = auth,
                             onSignUpSuccess = {
-                                currentRoute = "onboarding"
                                 navController.navigate("onboarding")
                             }
                         )
@@ -152,11 +148,10 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "onboarding") {
+                    key(targetRoute) {
                         OnboardingScreen(
                             firestore = firestore,
                             onComplete = {
-                                currentRoute = "home"
                                 navController.navigate("home") {
                                     popUpTo(0) { inclusive = true }
                                 }
@@ -173,7 +168,7 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "home") {
+                    key(targetRoute) {
                         HomeScreen(
                             onCreateClick = { showCreateModal = true }
                         )
@@ -188,7 +183,7 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "discover") {
+                    key(targetRoute) {
                         DiscoverScreen()
                     }
                 }
@@ -201,7 +196,7 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "messages") {
+                    key(targetRoute) {
                         MessagesScreen()
                     }
                 }
@@ -214,12 +209,11 @@ fun AppNavigation(
                                 slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
                     }
                 ) { targetRoute ->
-                    if (targetRoute == "profile") {
+                    key(targetRoute) {
                         ProfileScreen(
                            // auth = auth,
                            // onLogoutClick = {
                             //    auth.signOut()
-                            //    currentRoute = "welcome"
                             //    navController.navigate("welcome") {
                             //        popUpTo(0) { inclusive = true }
                             //    }

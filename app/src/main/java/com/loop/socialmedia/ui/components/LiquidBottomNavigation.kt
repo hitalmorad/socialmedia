@@ -1,6 +1,8 @@
 package com.loop.socialmedia.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,10 +20,18 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.google.ai.client.generativeai.Chat
 import com.loop.socialmedia.ui.theme.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import kotlin.math.roundToInt
 
 data class BottomNavItem(
     val route: String,
@@ -44,6 +54,35 @@ fun LiquidBottomNavigation(
         BottomNavItem("profile", Icons.Default.Person, "Profile")
     )
 
+    var containerWidthPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val pillSizeDp = 48.dp
+    val pillWidthPx = with(density) { pillSizeDp.toPx() }
+    val initialIndex = items.indexOfFirst { it.route == currentRoute }.coerceIn(0, items.lastIndex)
+    val selectedIndexAnim = remember { Animatable(initialIndex.toFloat()) }
+    LaunchedEffect(currentRoute) {
+        val target = items.indexOfFirst { it.route == currentRoute }.coerceIn(0, items.lastIndex)
+        selectedIndexAnim.animateTo(
+            targetValue = target.toFloat(),
+            animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
+        )
+    }
+    val displayIndex = selectedIndexAnim.value.roundToInt().coerceIn(0, items.lastIndex)
+    val centersPx = remember { mutableStateMapOf<Int, Float>() }
+    val showPill = displayIndex != 2 // no pill for the center create button
+    val pillTargetXPx: Float = if (containerWidthPx == 0 || !showPill) 0f else run {
+        val measuredCenter = centersPx[displayIndex]
+        if (measuredCenter != null) measuredCenter - pillWidthPx / 2f else run {
+            val slotWidth = containerWidthPx / 5f
+            (selectedIndexAnim.value * slotWidth + slotWidth / 2f - pillWidthPx / 2f)
+        }
+    }
+    val animatedXPx by animateFloatAsState(
+        targetValue = pillTargetXPx,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "pill_x"
+    )
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -53,31 +92,8 @@ fun LiquidBottomNavigation(
                 RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
             )
             .zIndex(1000f)
+            .onSizeChanged { containerWidthPx = it.width }
     ) {
-        // Liquid background effect
-        val liquidScale by animateFloatAsState(
-            targetValue = if (currentRoute == "create") 1.2f else 1.0f,
-            animationSpec = tween(300),
-            label = "liquid_scale"
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(60.dp)
-                .scale(liquidScale)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            temple_sunset_orange.copy(alpha = 0.8f),
-                            temple_sunset_golden.copy(alpha = 0.6f)
-                        )
-                    ),
-                    CircleShape
-                )
-                .zIndex(1f)
-        )
-
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -86,47 +102,84 @@ fun LiquidBottomNavigation(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left side items (Home, Discover)
-            items.take(2).forEach { item ->
+            items.take(2).forEachIndexed { index, item ->
                 BottomNavItem(
                     item = item,
-                    isSelected = currentRoute == item.route,
+                    isSelected = displayIndex == index,
                     onClick = { onNavigate(item.route) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .onGloballyPositioned { c ->
+                            centersPx[index] = c.positionInParent().x + c.size.width / 2f
+                        }
                 )
             }
 
-            // Center Create button
+            // Center diamond CTA button
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .zIndex(2f)
-                    .clickable { onCreateClick() }
+                    .size(56.dp)
+                    .zIndex(4f)
+                    .offset(y = (-24).dp)
+                    .shadow(8.dp, RoundedCornerShape(12.dp))
                     .background(
-                        Brush.radialGradient(
+                        Brush.verticalGradient(
                             colors = listOf(
                                 temple_sunset_orange,
                                 temple_sunset_golden
                             )
                         ),
-                        CircleShape
-                    ),
+                        RoundedCornerShape(16.dp)
+                    )
+                    .rotate(45f)
+                    .clickable { onCreateClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Create",
                     tint = Color.White,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier
+                        .size(26.dp)
+                        .rotate(-45f)
                 )
             }
 
             // Right side items (Messages, Profile)
-            items.drop(3).forEach { item ->
+            items.drop(3).forEachIndexed { rIndex, item ->
+                val index = rIndex + 3
                 BottomNavItem(
                     item = item,
-                    isSelected = currentRoute == item.route,
+                    isSelected = displayIndex == index,
                     onClick = { onNavigate(item.route) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .onGloballyPositioned { c ->
+                            centersPx[index] = c.positionInParent().x + c.size.width / 2f
+                        }
+                )
+            }
+        }
+
+        // Sliding selected pill indicator drawn on top of the items
+        if (showPill) {
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(animatedXPx.roundToInt(), (-10).dp.roundToPx()) }
+                    .size(pillSizeDp)
+                    .align(Alignment.CenterStart)
+                    .background(Color.White, CircleShape)
+                    .zIndex(4f),
+                contentAlignment = Alignment.Center
+            ) {
+                val selectedItem = items[displayIndex]
+                Icon(
+                    imageVector = selectedItem.icon,
+                    contentDescription = selectedItem.label,
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -149,6 +202,7 @@ private fun BottomNavItem(
     Column(
         modifier = modifier
             .clickable { onClick() }
+            .alpha(if (isSelected) 0f else 1f)
             .scale(scale),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -158,14 +212,6 @@ private fun BottomNavItem(
             contentDescription = item.label,
             tint = if (isSelected) temple_sunset_orange else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = item.label,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) temple_sunset_orange else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

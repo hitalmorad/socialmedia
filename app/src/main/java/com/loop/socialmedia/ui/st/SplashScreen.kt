@@ -16,6 +16,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.loop.socialmedia.R
 import kotlinx.coroutines.delay
+import com.loop.socialmedia.ui.theme.temple_sunset_orange
+import com.loop.socialmedia.ui.theme.temple_sunset_golden
+import com.loop.socialmedia.ui.theme.temple_sunset_light_orange
+import com.loop.socialmedia.ui.theme.temple_sunset_sky_blue
+import com.loop.socialmedia.ui.theme.temple_sunset_water_blue
 
 @Composable
 fun SplashScreen(
@@ -32,9 +37,33 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.linearGradient(listOf(Color(0xFF6200EE), Color(0xFF3700B3)))),
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        temple_sunset_orange,
+                        temple_sunset_golden,
+                        temple_sunset_light_orange,
+                        temple_sunset_sky_blue,
+                        temple_sunset_water_blue
+                    )
+                )
+            ),
         contentAlignment = Alignment.Center
     ) {
+        // Subtle vignette overlay like Login/Welcome for readability
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.08f),
+                            Color.Black.copy(alpha = 0.18f)
+                        )
+                    )
+                )
+        )
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn()

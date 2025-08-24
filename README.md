@@ -235,8 +235,13 @@ socialmedia/
 
 ## 📱 Screenshots  
 
-*Coming Soon - Screenshots will be added as features are completed*
-
+<p align="center">
+  <img width="30%" height="50%" src="https://github.com/Shamik200/loopsy/tree/main/app/src/main/res/drawable/img1.jpg" />
+  <img width="30%" height="50%" src="https://github.com/Shamik200/loopsy/tree/main/app/src/main/res/drawable/img2.jpg" />
+  <img width="30%" height="50%" src="https://github.com/Shamik200/loopsy/tree/main/app/src/main/res/drawable/img3.jpg" />
+  <img width="30%" height="50%" src="https://github.com/Shamik200/loopsy/tree/main/app/src/main/res/drawable/img4.jpg" />
+  <img width="30%" height="50%" src="https://github.com/Shamik200/loopsy/tree/main/app/src/main/res/drawable/img5.jpg" />
+</p>
 ---
 
 ## 🤝 Contributing  

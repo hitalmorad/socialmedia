@@ -1,17 +1,15 @@
 package com.loop.socialmedia.ui.navigation
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.core.splashscreen.SplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.loop.socialmedia.data.repository.CloudinaryRepository
@@ -39,7 +37,7 @@ fun AppNavigation(
 
     Scaffold(
         bottomBar = {
-            if (currentRoute !in listOf("splash", "welcome", "login", "signup", "onboarding")) {
+            if (currentRoute !in listOf("splash", "welcome", "login", "signup", "onboarding", "post_preview")) {
                 LiquidBottomNavigation(
                     currentRoute = currentRoute,
                     onNavigate = { route ->
@@ -62,6 +60,7 @@ fun AppNavigation(
             startDestination = if (isUserLoggedIn) "home" else "splash",
             modifier = Modifier.padding(paddingValues)
         ) {
+            // --- Auth & Onboarding ---
             composable("splash") {
                 SplashScreen(
                     isUserLoggedIn = isUserLoggedIn,
@@ -74,174 +73,97 @@ fun AppNavigation(
                 )
             }
             composable("welcome") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        WelcomeScreen(
-                            onSignUpClick = {
-                                navController.navigate("signup")
-                            },
-                            onLoginClick = {
-                                navController.navigate("login")
-                            },
-                            onGuestClick = {
-                                navController.navigate("home")
-                            }
-                        )
-                    }
-                }
+                WelcomeScreen(
+                    onSignUpClick = { navController.navigate("signup") },
+                    onLoginClick = { navController.navigate("login") },
+                    onGuestClick = { navController.navigate("home") }
+                )
             }
             composable("login") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        LoginScreen(
-                            firestore = firestore,
-                            auth = auth,
-                            onLoginSuccess = {
-                                navController.navigate("home") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            },
-                            onSignUpClick = {
-                                navController.navigate("signup")
-                            }
-                        )
-                    }
-                }
+                LoginScreen(
+                    firestore = firestore,
+                    auth = auth,
+                    onLoginSuccess = {
+                        navController.navigate("home") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    onSignUpClick = { navController.navigate("signup") }
+                )
             }
             composable("signup") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        SignUpScreen(
-                            firestore = firestore,
-                            cloudinaryRepository = cloudinaryRepository,
-                            auth = auth,
-                            onSignUpSuccess = {
-                                navController.navigate("onboarding")
-                            }
-                        )
-                    }
-                }
+                SignUpScreen(
+                    firestore = firestore,
+                    cloudinaryRepository = cloudinaryRepository,
+                    auth = auth,
+                    onSignUpSuccess = { navController.navigate("onboarding") }
+                )
             }
             composable("onboarding") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
+                OnboardingScreen(
+                    firestore = firestore,
+                    auth = FirebaseAuth.getInstance(),
+                    onComplete = {
+                        navController.navigate("home") {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        OnboardingScreen(
-                            firestore = firestore,
-                            onComplete = {
-                                navController.navigate("home") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            }
-                        )
-                    }
-                }
+                )
             }
+
+            // --- Main Tabs ---
             composable("home") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        HomeScreen(
-                            onCreateClick = { showCreateModal = true }
-                        )
-                    }
-                }
+                HomeScreen(onCreateClick = { showCreateModal = true })
             }
-            composable("discover") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        DiscoverScreen()
-                    }
-                }
-            }
-            composable("messages") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        MessagesScreen()
-                    }
-                }
-            }
+            composable("discover") { DiscoverScreen() }
+            composable("messages") { MessagesScreen() }
             composable("profile") {
-                AnimatedContent(
-                    targetState = currentRoute,
-                    transitionSpec = {
-                        slideInHorizontally(animationSpec = tween(500)) { fullWidth -> fullWidth } with
-                                slideOutHorizontally(animationSpec = tween(500)) { fullWidth -> -fullWidth }
-                    }
-                ) { targetRoute ->
-                    key(targetRoute) {
-                        ProfileScreen(
-                           // auth = auth,
-                           // onLogoutClick = {
-                            //    auth.signOut()
-                            //    navController.navigate("welcome") {
-                            //        popUpTo(0) { inclusive = true }
-                            //    }
-                           // }
-                        )
-                    }
-                }
+                ProfileScreen()
+            }
+
+            // --- Create Screens ---
+            composable("create_post") {
+                PostEditorScreen(navController = navController)
+            }
+            composable("create_story") {
+                CreateStoryScreen(navController = navController)
+            }
+            composable("create_reel") {
+                CreateReelScreen(navController = navController)
+            }
+            composable("more_options") {
+                MoreOptionsScreen(navController = navController)
+            }
+
+            // --- Preview Screen ---
+            composable("post_preview") {
+                PostPreviewScreen(
+                    navController = navController,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
 
+        // --- Create Modal ---
         CreateOptionsModal(
             isVisible = showCreateModal,
             onDismiss = { showCreateModal = false },
+            navController = navController,
             onCreatePost = {
                 showCreateModal = false
-                // Navigate to create post screen
+                navController.navigate("create_post")
             },
             onCreateStory = {
                 showCreateModal = false
-                // Navigate to create story screen
+                navController.navigate("create_story")
             },
             onCreateReel = {
                 showCreateModal = false
-                // Navigate to create reel screen
+                navController.navigate("create_reel")
             },
             onMoreOptions = {
                 showCreateModal = false
-                // Navigate to more options screen
+                navController.navigate("more_options")
             }
         )
     }

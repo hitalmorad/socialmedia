@@ -23,15 +23,88 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.loop.socialmedia.data.model.User
 import com.loop.socialmedia.ui.theme.md_theme_light_primary
 import com.loop.socialmedia.ui.theme.md_theme_light_secondary
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Posts", "Memories", "Boards", "Activity")
+    var user by remember { mutableStateOf<User?>(null) }
+    var posts by remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    var stories by remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    var reels by remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    var activities by remember { mutableStateOf<List<String>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Fetch user data and related content
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            val userId = auth.currentUser?.uid
+            if (userId == null) {
+                errorMessage = "User not authenticated"
+                isLoading = false
+                return@launch
+            }
+
+            // Fetch user profile
+            firestore.collection("users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    user = document.toObject(User::class.java)
+                    isLoading = false
+                }
+                .addOnFailureListener { e ->
+                    errorMessage = "Failed to load profile: ${e.message}"
+                    isLoading = false
+                }
+
+            // Fetch posts
+            firestore.collection("posts").whereEqualTo("userId", userId).get()
+                .addOnSuccessListener { snapshot ->
+                    posts = snapshot.documents.mapNotNull { it.data }
+                }
+                .addOnFailureListener { e ->
+                    errorMessage = "Failed to load posts: ${e.message}"
+                }
+
+            // Fetch stories (memories)
+            firestore.collection("stories").whereEqualTo("userId", userId).get()
+                .addOnSuccessListener { snapshot ->
+                    stories = snapshot.documents.mapNotNull { it.data }
+                }
+                .addOnFailureListener { e ->
+                    errorMessage = "Failed to load stories: ${e.message}"
+                }
+
+            // Fetch reels
+            firestore.collection("reels").whereEqualTo("userId", userId).get()
+                .addOnSuccessListener { snapshot ->
+                    reels = snapshot.documents.mapNotNull { it.data }
+                }
+                .addOnFailureListener { e ->
+                    errorMessage = "Failed to load reels: ${e.message}"
+                }
+
+            // Fetch activities (simulated as a list of strings for simplicity)
+            firestore.collection("activities").whereEqualTo("userId", userId).get()
+                .addOnSuccessListener { snapshot ->
+                    activities = snapshot.documents.mapNotNull { it.getString("description") }
+                }
+                .addOnFailureListener { e ->
+                    errorMessage = "Failed to load activities: ${e.message}"
+                }
+        }
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -39,12 +112,22 @@ fun ProfileScreen(
     ) {
         // Profile Header
         item {
-            ProfileHeader()
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            } else if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                ProfileHeader(user = user)
+            }
         }
 
         // Stats Row
         item {
-            ProfileStats()
+            ProfileStats(user = user)
         }
 
         // Action Buttons
@@ -64,24 +147,35 @@ fun ProfileScreen(
         // Tab Content
         when (selectedTab) {
             0 -> {
-                items(getSamplePosts()) { post ->
-                    ProfilePostCard(post = post)
-                    Spacer(modifier = Modifier.height(8.dp))
+                if (posts.isEmpty() && !isLoading) {
+                    item {
+                        Text(
+                            text = "No posts available",
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                } else {
+                    items(posts) { post ->
+                        ProfilePostCard(post = post)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
             1 -> {
                 item {
-                    MemoriesTab()
+                    MemoriesTab(stories = stories)
                 }
             }
             2 -> {
                 item {
-                    BoardsTab()
+                    BoardsTab(interests = user?.interests ?: emptyList())
                 }
             }
             3 -> {
                 item {
-                    ActivityTab()
+                    ActivityTab(activities = activities)
                 }
             }
         }
@@ -89,7 +183,7 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeader() {
+private fun ProfileHeader(user: User?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,28 +205,36 @@ private fun ProfileHeader() {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            AsyncImage(
-                model = "https://picsum.photos/200/200?random=1",
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(116.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+            if (user?.profileImageUrl?.isNotEmpty() == true) {
+                AsyncImage(
+                    model = user.profileImageUrl,
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(116.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = "No Image",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // User Info
         Text(
-            text = "Alex Johnson",
+            text = user?.name ?: "No Name",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
         Text(
-            text = "@alexjohnson",
+            text = user?.username?.let { "@$it" } ?: "@unknown",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -140,7 +242,7 @@ private fun ProfileHeader() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Photography enthusiast | Travel lover | Coffee addict ☕",
+            text = user?.bio?.takeIf { it.isNotEmpty() } ?: "No bio available",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -163,7 +265,7 @@ private fun ProfileHeader() {
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "Friendship Score: 8.5/10",
+                text = "Friendship Score: ${user?.friendshipScore?.let { "${it}/10" } ?: "N/A"}",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
@@ -173,7 +275,7 @@ private fun ProfileHeader() {
 }
 
 @Composable
-private fun ProfileStats() {
+private fun ProfileStats(user: User?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -181,25 +283,25 @@ private fun ProfileStats() {
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         StatItem(
-            count = "1.2K",
+            count = user?.posts?.size?.toString() ?: "0",
             label = "Posts",
             icon = Icons.Default.Image
         )
 
         StatItem(
-            count = "5.8K",
+            count = user?.followers?.size?.toString() ?: "0",
             label = "Followers",
             icon = Icons.Default.People
         )
 
         StatItem(
-            count = "892",
+            count = user?.following?.size?.toString() ?: "0",
             label = "Following",
             icon = Icons.Default.PersonAdd
         )
 
         StatItem(
-            count = "15",
+            count = user?.streakCount?.toString() ?: "0",
             label = "Streak",
             icon = Icons.Default.LocalFireDepartment
         )
@@ -359,7 +461,7 @@ private fun ProfileTabToggle(
 }
 
 @Composable
-private fun ProfilePostCard(post: String) {
+private fun ProfilePostCard(post: Map<String, Any>) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -370,7 +472,7 @@ private fun ProfilePostCard(post: String) {
         )
     ) {
         AsyncImage(
-            model = "https://picsum.photos/400/400?random=${post.hashCode()}",
+            model = post["imageUrl"] as? String ?: "https://picsum.photos/400/400",
             contentDescription = "Post",
             modifier = Modifier
                 .fillMaxWidth()
@@ -381,7 +483,7 @@ private fun ProfilePostCard(post: String) {
 }
 
 @Composable
-private fun MemoriesTab() {
+private fun MemoriesTab(stories: List<Map<String, Any>>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -396,18 +498,26 @@ private fun MemoriesTab() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(getMemories()) { memory ->
-                MemoryCard(memory = memory)
+        if (stories.isEmpty()) {
+            Text(
+                text = "No memories available",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(stories) { story ->
+                    MemoryCard(story = story)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun MemoryCard(memory: String) {
+private fun MemoryCard(story: Map<String, Any>) {
     Card(
         modifier = Modifier
             .width(200.dp)
@@ -424,18 +534,27 @@ private fun MemoryCard(memory: String) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
+            AsyncImage(
+                model = story["imageUrl"] as? String ?: "https://picsum.photos/200/150",
+                contentDescription = "Memory",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
             Text(
-                text = memory,
+                text = story["content"] as? String ?: "No description",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White,
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(4.dp)
             )
         }
     }
 }
 
 @Composable
-private fun BoardsTab() {
+private fun BoardsTab(interests: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -450,18 +569,26 @@ private fun BoardsTab() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(getBoards()) { board ->
-                BoardCard(board = board)
+        if (interests.isEmpty()) {
+            Text(
+                text = "No interests selected",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(interests) { interest ->
+                    BoardCard(interest = interest)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun BoardCard(board: String) {
+private fun BoardCard(interest: String) {
     Card(
         modifier = Modifier
             .width(180.dp)
@@ -479,7 +606,7 @@ private fun BoardCard(board: String) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = board,
+                text = interest,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
@@ -489,7 +616,7 @@ private fun BoardCard(board: String) {
 }
 
 @Composable
-private fun ActivityTab() {
+private fun ActivityTab(activities: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -504,11 +631,19 @@ private fun ActivityTab() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(getActivities()) { activity ->
-                ActivityItem(activity = activity)
+        if (activities.isEmpty()) {
+            Text(
+                text = "No recent activity",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(activities) { activity ->
+                    ActivityItem(activity = activity)
+                }
             }
         }
     }
@@ -537,27 +672,4 @@ private fun ActivityItem(activity: String) {
             color = MaterialTheme.colorScheme.onSurface
         )
     }
-}
-
-// Sample data functions
-private fun getSamplePosts(): List<String> {
-    return listOf("post1", "post2", "post3", "post4", "post5", "post6")
-}
-
-private fun getMemories(): List<String> {
-    return listOf("1 year ago", "2 years ago", "3 years ago", "5 years ago")
-}
-
-private fun getBoards(): List<String> {
-    return listOf("Travel Ideas", "Photo Inspiration", "Food Recipes", "Fitness Goals")
-}
-
-private fun getActivities(): List<String> {
-    return listOf(
-        "Liked a post from @mindcast",
-        "Commented on @vibeteller's story",
-        "Joined Photography Club",
-        "Completed daily challenge",
-        "Sent 3 compliments today"
-    )
 }

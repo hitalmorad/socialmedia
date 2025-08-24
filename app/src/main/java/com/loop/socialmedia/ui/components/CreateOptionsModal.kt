@@ -1,7 +1,11 @@
 package com.loop.socialmedia.ui.components
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,32 +14,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavController
 import com.loop.socialmedia.ui.theme.md_theme_light_primary
 import com.loop.socialmedia.ui.theme.md_theme_light_secondary
-
-data class CreateOption(
-    val title: String,
-    val icon: ImageVector,
-    val color: Color,
-    val onClick: () -> Unit
-)
 
 @Composable
 fun CreateOptionsModal(
     isVisible: Boolean,
     onDismiss: () -> Unit,
+    navController: NavController,
     onCreatePost: () -> Unit,
     onCreateStory: () -> Unit,
     onCreateReel: () -> Unit,
@@ -65,113 +60,76 @@ fun CreateOptionsModal(
                     .wrapContentHeight()
                     .padding(16.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        MaterialTheme.colorScheme.surface,
-                        RoundedCornerShape(24.dp)
-                    )
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Header
                     Text(
                         text = "Create",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Main options
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         CreateOptionItem(
-                            option = CreateOption(
-                                title = "Post",
-                                icon = Icons.Default.Image,
-                                color = md_theme_light_primary,
-                                onClick = onCreatePost
-                            ),
-                            modifier = Modifier.weight(1f)
+                            title = "Post",
+                            icon = Icons.Default.Image,
+                            color = md_theme_light_primary,
+                            onClick = {
+                                onDismiss()
+                                navController.navigate("create_post")
+                            }
                         )
 
-                        Spacer(modifier = Modifier.width(16.dp))
-
                         CreateOptionItem(
-                            option = CreateOption(
-                                title = "Story",
-                                icon = Icons.Default.Circle,
-                                color = md_theme_light_secondary,
-                                onClick = onCreateStory
-                            ),
-                            modifier = Modifier.weight(1f)
+                            title = "Story",
+                            icon = Icons.Default.Circle,
+                            color = md_theme_light_secondary,
+                            onClick = {
+                                onDismiss()
+                                navController.navigate("create_story")
+                            }
                         )
 
-                        Spacer(modifier = Modifier.width(16.dp))
-
                         CreateOptionItem(
-                            option = CreateOption(
-                                title = "Reel",
-                                icon = Icons.Default.VideoLibrary,
-                                color = Color(0xFF10B981),
-                                onClick = onCreateReel
-                            ),
-                            modifier = Modifier.weight(1f)
+                            title = "Reel",
+                            icon = Icons.Default.VideoLibrary,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            onClick = {
+                                onDismiss()
+                                navController.navigate("create_reel")
+                            }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // More options button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(16.dp)
-                            )
-                            .clickable { onMoreOptions() },
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable {
+                                onDismiss()
+                                navController.navigate("more_options")
+                            },
                         contentAlignment = Alignment.Center
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreHoriz,
-                                contentDescription = "More",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Text(
-                                text = "More Options",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text("More Options")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Close button
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                        Text("Cancel")
                     }
                 }
             }
@@ -181,51 +139,27 @@ fun CreateOptionsModal(
 
 @Composable
 private fun CreateOptionItem(
-    option: CreateOption,
-    modifier: Modifier = Modifier
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit
 ) {
-    val scale by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(200),
-        label = "option_scale"
-    )
-
     Column(
-        modifier = modifier
-            .clickable { option.onClick() }
-            .scale(scale),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            option.color.copy(alpha = 0.2f),
-                            option.color.copy(alpha = 0.1f)
-                        )
-                    )
-                ),
+                .background(color.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = option.icon,
-                contentDescription = option.title,
-                tint = option.color,
-                modifier = Modifier.size(32.dp)
-            )
+            Icon(icon, contentDescription = title, tint = color, modifier = Modifier.size(32.dp))
         }
-
         Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = option.title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
-        )
+        Text(title, fontWeight = FontWeight.Medium)
     }
 }

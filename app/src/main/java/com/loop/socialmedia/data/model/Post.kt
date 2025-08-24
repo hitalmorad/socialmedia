@@ -37,5 +37,5 @@ data class Comment(
 ) : Parcelable
 
 enum class MediaType {
-    IMAGE, VIDEO, TEXT, POLL, STORY, REEL
+    IMAGE, VIDEO, TEXT, POLL, STORY, REEL,POST
 }

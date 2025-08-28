@@ -43,7 +43,8 @@ fun AppNavigation(
                     onNavigate = { route ->
                         currentRoute = route
                         navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId) {
+                            // Clear back stack and make home the root for all main tabs
+                            popUpTo("home") {
                                 saveState = true
                             }
                             launchSingleTop = true

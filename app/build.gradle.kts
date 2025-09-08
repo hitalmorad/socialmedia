@@ -65,6 +65,22 @@ android {
 }
 
 dependencies {
+    // Force consistent Protobuf versions and exclude protobuf-java in favor of protobuf-javalite
+    configurations.all {
+        resolutionStrategy {
+            // Prefer protobuf-javalite over protobuf-java
+            exclude(group = "com.google.protobuf", module = "protobuf-java")
+        }
+    }
+    
+    constraints {
+        implementation("com.google.protobuf:protobuf-javalite:3.25.5") {
+            because("Using protobuf-javalite for Android")
+        }
+        implementation("com.google.firebase:protolite-well-known-types:18.0.1") {
+            because("Resolving Protobuf version conflicts")
+        }
+    }
     // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -82,6 +98,7 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.benchmark.baseline.profile.gradle.plugin)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 

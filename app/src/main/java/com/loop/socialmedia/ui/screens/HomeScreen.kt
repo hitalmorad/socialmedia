@@ -3,6 +3,7 @@ package com.loop.socialmedia.ui.screens
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.loop.socialmedia.R
+import com.loop.socialmedia.data.model.MediaType
 import com.loop.socialmedia.data.model.Post
 import com.loop.socialmedia.data.model.Story
 import com.loop.socialmedia.data.model.User
@@ -278,80 +280,133 @@ private fun PostCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color(0xFF1E1E1E)
         )
     ) {
         Column {
-            // User info header
-            Row(
+            // User info header with gradient background
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AsyncImage(
-                    model = post.userProfileImage,
-                    contentDescription = post.userName,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = post.userName,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        if (post.userName == "mindcast") {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Default.Verified,
-                                contentDescription = "Verified",
-                                tint = md_theme_light_primary,
-                                modifier = Modifier.size(16.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFFF5E62),
+                                Color(0xFFFF9966)
                             )
-                        }
+                        )
+                    )
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // User avatar with border
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .border(
+                                width = 2.dp,
+                                color = Color.White,
+                                shape = CircleShape
+                            )
+                            .padding(2.dp)
+                    ) {
+                        AsyncImage(
+                            model = post.userProfileImage,
+                            contentDescription = post.userName,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
                     }
 
-                    Text(
-                        text = "Imam Majboor, Neha Nasi, Khani Kondu",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                }
+                    Spacer(modifier = Modifier.width(12.dp))
 
-                IconButton(onClick = onMoreClick) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = post.userName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+
+                            if (post.userName == "mindcast") {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Verified,
+                                    contentDescription = "Verified",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "Imam Majboor, Neha Nasi, Khani Kondu",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    // Follow button
+                    Button(
+                        onClick = { /* Handle follow */ },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text(
+                            text = "Follow",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
             // Post content
             if (post.mediaUrls.isNotEmpty()) {
-                AsyncImage(
-                    model = post.mediaUrls.first(),
-                    contentDescription = "Post content",
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp),
-                    contentScale = ContentScale.Crop
-                )
+                        .aspectRatio(9f / 16f)
+                ) {
+                    AsyncImage(
+                        model = post.mediaUrls.first(),
+                        contentDescription = "Post content",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    // Play button overlay for video
+                    if (post.mediaType == MediaType.VIDEO) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.3f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircleFilled,
+                                contentDescription = "Play",
+                                tint = Color.White,
+                                modifier = Modifier.size(64.dp)
+                            )
+                        }
+                    }
+                }
             }
 
             // Action buttons
@@ -366,64 +421,109 @@ private fun PostCard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onLikeClick) {
+                    // Like button with count
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable(onClick = onLikeClick)
+                    ) {
                         Icon(
                             imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Like",
-                            tint = if (post.isLiked) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (post.isLiked) Color(0xFFFF5E62) else Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${post.likes.size}k",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
-                    IconButton(onClick = onCommentClick) {
+                    // Comment button with count
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable(onClick = onCommentClick)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.ChatBubbleOutline,
                             contentDescription = "Comment",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${post.comments.size}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                }
 
-                    IconButton(onClick = onShareClick) {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = "Share",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
+                // Save/Bookmark button
+                IconButton(onClick = { /* Handle save */ }) {
                     Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Loop",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        imageVector = Icons.Default.BookmarkBorder,
+                        contentDescription = "Save",
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
-
-                // Likes count
-                Text(
-                    text = "${post.likes.size}k Liked",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
 
             // Post caption
             if (post.content.isNotEmpty()) {
                 Text(
                     text = post.content,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White,
+                    lineHeight = 20.sp
                 )
             }
 
-            // Timestamp
-            Text(
-                text = "12h ago",
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Hashtags
+            if (post.hashtags.isNotEmpty()) {
+                Text(
+                    text = post.hashtags.joinToString(" ") { "#$it" },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1E90FF),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            // Timestamp and view count
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${formatTimeAgo(post.createdAt)} • ${post.views}k views",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
         }
+    }
+}
+
+// Helper function to format timestamp
+private fun formatTimeAgo(timestamp: Long): String {
+    val seconds = (System.currentTimeMillis() - timestamp) / 1000
+    return when {
+        seconds < 60 -> "${seconds.toInt()}s"
+        seconds < 3600 -> "${(seconds / 60).toInt()}m"
+        seconds < 86400 -> "${(seconds / 3600).toInt()}h"
+        seconds < 604800 -> "${(seconds / 86400).toInt()}d"
+        seconds < 2592000 -> "${(seconds / 604800).toInt()}w"
+        seconds < 31536000 -> "${(seconds / 2592000).toInt()}mo"
+        else -> "${(seconds / 31536000).toInt()}y"
     }
 }
 

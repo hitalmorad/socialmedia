@@ -7,14 +7,6 @@
         <entry key="Firebase Crashlytics">
           <value>
             <InsightsFilterSettings>
-              <option name="connection">
-                <ConnectionSetting>
-                  <option name="appId" value="com.loop.socialmedia" />
-                  <option name="mobileSdkAppId" value="1:248272561092:android:7b5ff3040a1d39ea3f7a91" />
-                  <option name="projectId" value="socialmedia-2c3c7" />
-                  <option name="projectNumber" value="248272561092" />
-                </ConnectionSetting>
-              </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
               <option name="timeIntervalDays" value="THIRTY_DAYS" />
               <option name="visibilityType" value="ALL" />

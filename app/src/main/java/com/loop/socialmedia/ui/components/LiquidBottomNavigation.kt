@@ -69,12 +69,17 @@ fun LiquidBottomNavigation(
     }
     val displayIndex = selectedIndexAnim.value.roundToInt().coerceIn(0, items.lastIndex)
     val centersPx = remember { mutableStateMapOf<Int, Float>() }
+    val itemWeights = remember { mutableStateMapOf<Int, Float>() }
     val showPill = displayIndex != 2 // no pill for the center create button
     val pillTargetXPx: Float = if (containerWidthPx == 0 || !showPill) 0f else run {
         val measuredCenter = centersPx[displayIndex]
-        if (measuredCenter != null) measuredCenter - pillWidthPx / 2f else run {
+        if (measuredCenter != null) {
+            // Use the actual measured center and adjust by half the pill width
+            measuredCenter - pillWidthPx / 2f
+        } else {
+            // Fallback calculation if measurement not available yet
             val slotWidth = containerWidthPx / 5f
-            (selectedIndexAnim.value * slotWidth + slotWidth / 2f - pillWidthPx / 2f)
+            (displayIndex * slotWidth + slotWidth / 2f - pillWidthPx / 2f)
         }
     }
     val animatedXPx by animateFloatAsState(
@@ -93,73 +98,94 @@ fun LiquidBottomNavigation(
             )
             .zIndex(1000f)
             .onSizeChanged { containerWidthPx = it.width }
+            .padding(horizontal = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left side items (Home, Discover)
             items.take(2).forEachIndexed { index, item ->
-                BottomNavItem(
-                    item = item,
-                    isSelected = displayIndex == index,
-                    onClick = { onNavigate(item.route) },
+                Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .padding(horizontal = 4.dp)
                         .onGloballyPositioned { c ->
                             centersPx[index] = c.positionInParent().x + c.size.width / 2f
+                            itemWeights[index] = c.size.width.toFloat()
                         }
-                )
+                ) {
+                    BottomNavItem(
+                        item = item,
+                        isSelected = displayIndex == index,
+                        onClick = { onNavigate(item.route) },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
 
             // Center diamond CTA button
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .zIndex(4f)
-                    .offset(y = (-24).dp)
-                    .shadow(8.dp, RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                temple_sunset_orange,
-                                temple_sunset_golden
-                            )
-                        ),
-                        RoundedCornerShape(16.dp)
-                    )
-                    .rotate(45f)
-                    .clickable { onCreateClick() },
-                contentAlignment = Alignment.Center
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 4.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create",
-                    tint = Color.White,
+                Box(
                     modifier = Modifier
-                        .size(26.dp)
-                        .rotate(-45f)
-                )
+                        .size(56.dp)
+                        .zIndex(4f)
+                        .align(Alignment.TopCenter)
+                        .offset(y = (-24).dp)
+                        .shadow(8.dp, RoundedCornerShape(12.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    temple_sunset_orange,
+                                    temple_sunset_golden
+                                )
+                            ),
+                            RoundedCornerShape(16.dp)
+                        )
+                        .rotate(45f)
+                        .clickable { onCreateClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(26.dp)
+                            .rotate(-45f)
+                    )
+                }
             }
 
             // Right side items (Messages, Profile)
             items.drop(3).forEachIndexed { rIndex, item ->
                 val index = rIndex + 3
-                BottomNavItem(
-                    item = item,
-                    isSelected = displayIndex == index,
-                    onClick = { onNavigate(item.route) },
+                Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .padding(horizontal = 4.dp)
                         .onGloballyPositioned { c ->
                             centersPx[index] = c.positionInParent().x + c.size.width / 2f
+                            itemWeights[index] = c.size.width.toFloat()
                         }
-                )
+                ) {
+                    BottomNavItem(
+                        item = item,
+                        isSelected = displayIndex == index,
+                        onClick = { onNavigate(item.route) },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
 

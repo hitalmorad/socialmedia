@@ -7,17 +7,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,6 +47,9 @@ import com.loop.socialmedia.ui.theme.temple_sunset_orange
 import com.loop.socialmedia.ui.theme.temple_sunset_sky_blue
 import com.loop.socialmedia.ui.theme.temple_sunset_water_blue
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -146,12 +152,69 @@ fun SignUpScreen(
 
                 when (step) {
                     1 -> {
+                        // Date of Birth Picker
+                        val calendar = remember { Calendar.getInstance() }
+                        val year = calendar.get(Calendar.YEAR)
+                        val month = calendar.get(Calendar.MONTH)
+                        val day = calendar.get(Calendar.DAY_OF_MONTH)
+                        
+                        var showDatePicker by remember { mutableStateOf(false) }
+                        val dateFormatter = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()) }
+                        
+                        // Date Picker Dialog
+                        if (showDatePicker) {
+                            val datePicker = android.app.DatePickerDialog(
+                                context,
+                                { _, selectedYear, selectedMonth, selectedDay ->
+                                    calendar.set(selectedYear, selectedMonth, selectedDay)
+                                    dateOfBirth = dateFormatter.format(calendar.time)
+                                    showDatePicker = false
+                                },
+                                year - 18, // Default to 18 years ago
+                                month,
+                                day
+                            )
+                            datePicker.datePicker.maxDate = System.currentTimeMillis()
+                            datePicker.show()
+                        }
+                        
+                        // Date of Birth Field
+                        OutlinedTextField(
+                            value = dateOfBirth,
+                            onValueChange = {},
+                            label = { Text("Date of Birth") },
+                            readOnly = true,
+                            singleLine = true,
+                            leadingIcon = { 
+                                Icon(
+                                    Icons.Default.CalendarToday, 
+                                    contentDescription = "Select Date",
+                                    modifier = Modifier.size(24.dp)
+                                ) 
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showDatePicker = true },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
                             label = { Text("Full Name") },
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                            leadingIcon = { 
+                                Icon(
+                                    Icons.Filled.Person, 
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                ) 
+                            },
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -279,17 +342,7 @@ fun SignUpScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = dateOfBirth,
-                            onValueChange = { dateOfBirth = it },
-                            label = { Text("Date of Birth (YYYY-MM-DD)") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // Date of Birth field is now at the top of the form
                         Spacer(modifier = Modifier.height(12.dp))
                         OutlinedTextField(
                             value = gender,
